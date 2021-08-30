@@ -1,0 +1,9 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+**importar las bases**
+A_Caracteri_Gen <- read.csv2("C:/Users/jhonatan/Desktop/F_PROGRAMACION/TAREA1_CASTRO/TAREA1_CASTRO/TAREA1_CASTRO/Datos/Junio.csv/Área - Características generales (Personas).csv")
+
+A_Fuerza_TRabajo <- read.csv2("C:/Users/jhonatan/Desktop/F_PROGRAMACION/TAREA1_CASTRO/TAREA1_CASTRO/TAREA1_CASTRO/Datos/Junio.csv/Área- Fuerza de trabajo.csv")
+**

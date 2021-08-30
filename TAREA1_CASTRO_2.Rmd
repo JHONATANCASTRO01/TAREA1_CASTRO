@@ -1,0 +1,138 @@
+---
+title: "TAREA1_CASTRO"
+author: "jhonatan"
+date: "28/8/2021"
+output: html_document
+---
+```{r include=FALSE}
+library(tidyverse)
+library (Hmisc)
+library(dplyr)
+library(dtplyr)
+```
+
+```{r include=FALSE}
+A_Caracteri_Gen <- read.csv2("C:/Users/jhonatan/Desktop/F_PROGRAMACION/TAREA1_CASTRO/TAREA1_CASTRO/TAREA1_CASTRO/Datos/Junio.csv/Área - Características generales (Personas).csv")
+
+A_Fuerza_TRabajo <- read.csv2("C:/Users/jhonatan/Desktop/F_PROGRAMACION/TAREA1_CASTRO/TAREA1_CASTRO/TAREA1_CASTRO/Datos/Junio.csv/Área- Fuerza de trabajo.csv")
+```
+
+Preguntas
+Punto 1. Cree en su directorio de trabajo un subdirectorio denominado datos.
+Descargue desde la página de Micrositios del DANE la Gran Encuesta Integrada de Hogares (GEIH) de junio de 2021 y su archivo de meta datos en el subdirectorio que acaba de crear.
+Siga los siguientes pasos: 
+a. Una el módulo Área de características generales (personas) y el módulo Área fuerza de
+trabajo
+¿Cuáles variables deberían usar como llave? DIRECTORIO, SECUENCIA_P Y ORDEN
+```{r}
+BASE_UNI<- left_join(x = A_Caracteri_Gen, y = A_Fuerza_TRabajo, by=c("ï..DIRECTORIO", "SECUENCIA_P", "ORDEN"))
+
+```
+```{r include=FALSE}
+attach(BASE_UNI)
+```
+
+b. Verifique que el tamaño de la nueva base de datos tenga la misma cantidad de registros que
+la de características de las personas.
+```{r}
+ dim(BASE_UNI)
+```
+
+c. Usando la librería dplyr, asigne el valor 1 a aquellos que en la pregunta P6240 respondieron
+1 y cero a las demás alternativas respondidas.
+```{r}
+Trabaja<- BASE_UNI %>% mutate(Trabajadores= ifelse(P6240==1, 1, 0))
+dim(Trabaja)
+```
+
+d. A partir del objeto que acaba de crear, cree otro objeto que guarde, agrupado por hogar (DIRECTORIO, SECUENCIA_P) la suma de ocupados en dicho hogar. Asegúrese de sólo dejar los campos llave, y la variable que acaba de crear)
+```{r}
+Trabajo_Hogar <- Trabaja %>% select(ï..DIRECTORIO, SECUENCIA_P, Trabajadores) %>% group_by(ï..DIRECTORIO, SECUENCIA_P) %>%  summarise(n= sum(Trabajadores))
+                                                                        
+  table(Trabajo_Hogar$n)
+sum(is.na(Trabajo_Hogar$n))
+```
+e. Asegúrese de que la variable que almacena el número de ocupados por hogar sea un factor.
+```{r}
+ocu <- factor(Trabajo_Hogar$Trabajadores)
+class(Trabajo_Hogar$Trabajadores)
+```
+f. Presente una tabla que indique cuántos hogares tienen 0 ó 1 ó 2 ó . . . ocupados en dicho hogar. Tenga presente que si cada hogar se repite tantas veces como miembros tiene, debe eliminar los registros repetidos de dicho vector (tal vez con el comando unique())
+```{r}
+M=table(Trabajo_Hogar$n)
+sum(is.na(Trabajo_Hogar$n))
+
+```
+g. Repita el paso ya ejecutado de asignar el valor 1 a aquellos que en la pregunta P6240
+respondieron 1 y cero a las demás alternativas respondidas
+
+```{r}
+Trabaja1<- BASE_UNI %>% mutate(Trabajadores= ifelse(P6240==1, 1, 0))
+```
+h. A partir del objeto que acaba de crear, cree otro objeto que guarde, agrupado por hogar
+(DIRECTORIO, SECUENCIA_P) la suma de ocupados en dicho hogar. Asegúrese de sólo
+dejar los campos llave, la variable que acaba de crear y el factor de expansión (fex_c_2011.x)
+
+```{r}
+Trabajo_poblacion <- Trabaja %>% select(ï..DIRECTORIO, SECUENCIA_P, Trabajadores, fex_c_2011.x) %>% group_by(ï..DIRECTORIO, SECUENCIA_P, fex_c_2011.x) %>%  summarise(n= sum(Trabajadores))
+
+```
+i. Asegúrese de que la variable que almacena el número de ocupados por hogar sea un factor.
+```{r}
+class(Trabajo_poblacion$n)
+F_Trabajo_poblacion <- factor(Trabajo_poblacion$n)
+```
+j. Utilice la función wtd.table() donde el primer parámetro es la variable que alberga el número
+de individuos ocupados por hogar y la segunda variable es el factor de expansión. El tipo de
+salida que se espera es ‘table’
+```{r}
+tab=wtd.table(Trabajo_poblacion$n,Trabajo_poblacion$fex_c_2011.x)
+```
+k. Calcule la frecuencia relativa y escriba su interpretación del resultado.
+```{r}
+(M)/margin.table(M)
+
+```
+Punto 2. Baje de Dropbox el archivo “Equivalencias ciiu.csv”
+```{r}
+Equivalencias.ciiu <- read.csv2("C:/Users/jhonatan/Desktop/F_PROGRAMACION/TAREA1_CASTRO/TAREA1_CASTRO/TAREA1_CASTRO/Datos/Equivalencias ciiu.csv")
+
+```
+a. Una el módulo Área de características generales (personas) y el módulo Ocupados, encargándose que quede del tamaño del módulo de ocupados
+```{r}
+AREA_OCUPADOS<- read.csv("C:/Users/jhonatan/Desktop/F_PROGRAMACION/TAREA1_CASTRO/TAREA1_CASTRO/TAREA1_CASTRO/Datos/Junio.csv/Área - Ocupados.csv", sep=";")
+BASE_UNI2<- left_join(x = AREA_OCUPADOS, y = A_Fuerza_TRabajo, by=c("ï..DIRECTORIO", "SECUENCIA_P", "ORDEN"))
+
+```
+```{r include=FALSE}
+attach(Equivalencias.ciiu)
+attach(BASE_UNI2)
+```
+
+b. A continuación, una el archivo de equivalencias ciiu con el objeto de determinar la Sección
+(variable RAMA2D_R4) en la que trabaja cada individuo ocupado.
+```{r}
+z=BASE_UNI2 %>% 
+  left_join(Equivalencias.ciiu, by = c("RAMA2D_R4" = "Id_grupo"))
+
+```
+
+
+c. Presente una tabla con el número de encuestados agrupado por rama de actividad económica
+```{r}
+table(z$Sección)
+```
+d. Presente una tabla donde se ha sumado el factor de expansión (fex_c_2011.x), agrupado
+por Sección (Área de la economía)
+```{r eval=FALSE, include=FALSE}
+j=factor(fex_c_2011.x)
+z %>% group_by(Sección) %>% k <- sum(fex_c_2011.y)
+table(Sección,z %>% group_by(Sección) %>% k=sum(fex_c_2011.y))
+```
+e. Presente una tabla de la frecuencia relativa de los ocupados por área de la economía y
+escriba su interpretación del resultado.
+```{r}
+table(z$Sección,z$P6240==1)
+
+```
+
